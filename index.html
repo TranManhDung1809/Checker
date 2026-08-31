@@ -319,6 +319,108 @@ body{min-height:100vh;padding:18px}
   background:#fff;
 }
 
+
+/* v16 — animated XP ring feedback */
+@property --p {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+
+.ring{
+  transition:
+    --p .65s cubic-bezier(.22,1,.36,1),
+    transform .25s ease;
+  overflow:visible;
+}
+
+.ring.gain{
+  animation:ringGain .55s cubic-bezier(.22,1,.36,1);
+}
+
+@keyframes ringGain{
+  0%{transform:scale(1)}
+  42%{transform:scale(1.035)}
+  100%{transform:scale(1)}
+}
+
+.ring.gain::before{
+  content:"";
+  position:absolute;
+  inset:-1px;
+  border-radius:50%;
+  background:conic-gradient(
+    from -70deg,
+    transparent 0deg,
+    transparent 260deg,
+    rgba(255,255,255,.10) 280deg,
+    rgba(255,255,255,.95) 305deg,
+    rgba(255,255,255,.18) 330deg,
+    transparent 350deg
+  );
+  -webkit-mask:radial-gradient(
+    farthest-side,
+    transparent calc(100% - 13px),
+    #000 calc(100% - 12px)
+  );
+  mask:radial-gradient(
+    farthest-side,
+    transparent calc(100% - 13px),
+    #000 calc(100% - 12px)
+  );
+  pointer-events:none;
+  z-index:3;
+  animation:ringShimmer .72s cubic-bezier(.22,1,.36,1);
+}
+
+@keyframes ringShimmer{
+  0%{transform:rotate(-100deg);opacity:0}
+  18%{opacity:1}
+  100%{transform:rotate(260deg);opacity:0}
+}
+
+.xp-wave{
+  position:absolute;
+  inset:0;
+  border-radius:50%;
+  border:2px solid rgba(95,96,101,.28);
+  pointer-events:none;
+  z-index:0;
+  animation:xpWave .75s ease-out forwards;
+}
+
+.xp-wave.second{animation-delay:.09s}
+
+@keyframes xpWave{
+  0%{opacity:.60;transform:scale(.94)}
+  100%{opacity:0;transform:scale(1.38)}
+}
+
+#percent{
+  transform-origin:center;
+}
+
+#percent.xp-pop{
+  animation:xpPercent .5s cubic-bezier(.2,1.6,.3,1);
+}
+
+@keyframes xpPercent{
+  0%{transform:scale(1)}
+  45%{transform:scale(1.11)}
+  100%{transform:scale(1)}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .ring,
+  .ring.gain,
+  .ring.gain::before,
+  .xp-wave,
+  #percent.xp-pop{
+    animation:none!important;
+    transition:none!important;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -510,6 +612,36 @@ body{min-height:100vh;padding:18px}
       setTimeout(()=>s.remove(),470);
     }
   }
+
+  function ringGainEffect(){
+    const ring=document.getElementById("ring");
+    const percent=document.getElementById("percent");
+
+    ring.classList.remove("gain");
+    percent.classList.remove("xp-pop");
+    ring.querySelectorAll(".xp-wave").forEach(el=>el.remove());
+
+    void ring.offsetWidth;
+
+    ring.classList.add("gain");
+    percent.classList.add("xp-pop");
+
+    const wave1=document.createElement("i");
+    wave1.className="xp-wave";
+    ring.appendChild(wave1);
+
+    const wave2=document.createElement("i");
+    wave2.className="xp-wave second";
+    ring.appendChild(wave2);
+
+    setTimeout(()=>{
+      wave1.remove();
+      wave2.remove();
+      ring.classList.remove("gain");
+      percent.classList.remove("xp-pop");
+    },850);
+  }
+
   function render(){
     let total=0;
     for(const g of Object.keys(targets)){
@@ -531,13 +663,16 @@ body{min-height:100vh;padding:18px}
 
     const p=Math.round(total/20*100);
     const ring=document.getElementById("ring");
+    const oldP=Number(ring.dataset.p ?? p);
+
     ring.style.setProperty("--p",p);
-    ring.classList.remove("pulse");
-    void ring.offsetWidth;
-    ring.classList.add("pulse");
-    setTimeout(()=>ring.classList.remove("pulse"),360);
+    ring.dataset.p=p;
 
     document.getElementById("percent").textContent=p+"%";
+
+    if(p>oldP){
+      ringGainEffect();
+    }
     document.getElementById("done").textContent=total;
     document.getElementById("saved").textContent=Object.keys(all()).length;
     return p;
