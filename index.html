@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Weekly Track Semester I</title>
+<style>
+:root{
+  --bg:#ececef;
+  --window:#f7f7f9;
+  --title:#eeeef1;
+  --sidebar:#f0f0f3;
+  --panel:#ffffff;
+  --panel2:#f4f4f6;
+  --text:#1d1d1f;
+  --muted:#86868b;
+  --line:#d8d8dc;
+  --accent:#5f6065;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:linear-gradient(145deg,#e6e6e9 0%,#f4f4f6 55%,#ffffff 100%);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+body{min-height:100vh;padding:18px}
+.app{
+  max-width:1000px;margin:auto;background:var(--window);
+  border:1px solid rgba(60,60,67,.16);border-radius:20px;overflow:hidden;
+  box-shadow:0 28px 70px rgba(0,0,0,.16),0 4px 14px rgba(0,0,0,.08);
+}
+.titlebar{
+  height:52px;background:var(--title);display:grid;
+  grid-template-columns:110px 1fr 210px;align-items:center;
+  padding:0 14px;border-bottom:1px solid rgba(60,60,67,.13)
+}
+.traffic{display:flex;gap:8px}
+.dot{width:12px;height:12px;border-radius:50%}
+.red{background:#ff5f57}.yellow{background:#febc2e}.green{background:#28c840}
+.title{text-align:center;font-size:13px;font-weight:650;color:#3a3a3c}
+.nav{justify-self:end;display:flex;gap:5px;align-items:center}
+.nav button,.nav input{
+  height:30px;border:1px solid #d1d1d6;background:#303034;color:var(--text);
+  border-radius:8px
+}
+.nav button{width:30px;font-size:16px;cursor:pointer}
+.nav input{width:126px;padding:0 6px;font-size:12px}
+.nav button:active,.sound:active{background:#e5e5e8}
+.layout{display:grid;grid-template-columns:190px 1fr}
+.sidebar{background:var(--sidebar);border-right:1px solid var(--line);padding:18px 14px}
+.side-label{font-size:11px;color:#8e8e93;text-transform:uppercase;letter-spacing:.08em;margin:0 8px 8px}
+.side-item{padding:9px 10px;border-radius:8px;background:rgba(0,0,0,.055);font-size:13px;font-weight:600}
+.main{padding:28px 30px}
+.hero{display:grid;grid-template-columns:145px 1fr;gap:24px;align-items:center;margin-bottom:18px}
+.ring{
+  --p:0;
+  width:132px;height:132px;border-radius:50%;
+  background:conic-gradient(var(--accent) calc(var(--p)*1%),#dedee2 0);
+  position:relative
+}
+.ring:after{
+  content:"";position:absolute;inset:11px;border-radius:50%;background:var(--window)
+}
+.ringtext{
+  position:absolute;inset:0;z-index:1;display:grid;place-items:center;text-align:center
+}
+.ringtext b{display:block;font-size:32px;letter-spacing:-.04em}
+.ringtext span{font-size:11px;color:var(--muted)}
+.hero h1{margin:0;font-size:34px;letter-spacing:-.04em}
+.stats{display:flex;gap:22px;margin-top:13px}
+.stat b{display:block;font-size:19px}.stat span{font-size:11px;color:var(--muted)}
+.rows{
+  background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden
+}
+.row{
+  display:grid;grid-template-columns:170px 1fr 55px;gap:14px;align-items:center;
+  min-height:72px;padding:12px 16px
+}
+.row+.row{border-top:1px solid var(--line)}
+.meta b{display:block;font-size:14px}.meta span{font-size:11px;color:var(--muted)}
+.days{display:flex;gap:7px;flex-wrap:wrap}
+.day{position:relative}
+.day input{position:absolute;opacity:0}
+.day label{
+  width:34px;height:34px;display:grid;place-items:center;border-radius:50%;
+  background:var(--panel2);border:1px solid #d1d1d6;color:#515154;
+  font-size:11px;font-weight:700;cursor:pointer;user-select:none;
+  transition:background .12s ease,color .12s ease,box-shadow .12s ease
+}
+.day input:checked+label{
+  background:#5f6065;color:#fff;border-color:#5f6065;
+  box-shadow:0 0 0 3px rgba(95,96,101,.10)
+}
+.day input:focus-visible+label{outline:2px solid #8e8e93;outline-offset:2px}
+.score{text-align:right;font-size:12px;color:var(--muted);font-weight:650}
+.score.done{color:#5f6065}
+.footer{
+  margin-top:15px;display:flex;justify-content:space-between;align-items:center;
+  color:#8e8e93;font-size:11px
+}
+.sound{
+  border:1px solid #d1d1d6;background:#303034;color:#3a3a3c;border-radius:8px;
+  height:30px;min-width:32px;cursor:pointer
+}
+.flash{
+  position:fixed;pointer-events:none;width:24px;height:24px;border-radius:50%;
+  border:1px solid rgba(255,255,255,.5);
+  transform:translate(-50%,-50%) scale(.6);opacity:0;
+  animation:flash .28s ease-out forwards
+}
+@keyframes flash{
+  0%{opacity:.7;transform:translate(-50%,-50%) scale(.5)}
+  100%{opacity:0;transform:translate(-50%,-50%) scale(1.8)}
+}
+@media(max-width:760px){
+  .layout{grid-template-columns:1fr}.sidebar{display:none}
+  .main{padding:22px 16px}.hero{grid-template-columns:1fr;text-align:center}
+  .ring{margin:auto}.stats{justify-content:center}.row{grid-template-columns:1fr}.score{text-align:left}
+  .titlebar{grid-template-columns:80px 1fr 165px}.nav input{width:92px}
+}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+
+/* v14 — richer local tick effects, still lightweight */
+.day{
+  position:relative;
+  overflow:visible;
+}
+.day label{
+  position:relative;
+  overflow:hidden;
+  isolation:isolate;
+}
+.day label::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:50%;
+  background:radial-gradient(circle at 35% 25%,rgba(95,96,101,.22),transparent 38%);
+  opacity:.18;
+  pointer-events:none;
+}
+.day label.tick-pop{
+  animation:tickPop .34s cubic-bezier(.2,1.45,.3,1);
+}
+@keyframes tickPop{
+  0%{box-shadow:0 0 0 0 rgba(255,255,255,.14)}
+  45%{box-shadow:0 0 0 5px rgba(255,255,255,.07)}
+  100%{box-shadow:0 0 0 0 rgba(255,255,255,0)}
+}
+
+.day label.shine::after{
+  content:"";
+  position:absolute;
+  top:-40%;
+  left:-60%;
+  width:38%;
+  height:180%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.85),transparent);
+  transform:rotate(20deg);
+  animation:labelSheen .36s ease-out forwards;
+  pointer-events:none;
+  z-index:3;
+}
+@keyframes labelSheen{
+  0%{left:-60%;opacity:0}
+  18%{opacity:.95}
+  100%{left:125%;opacity:0}
+}
+
+.tick-check{
+  position:fixed;
+  width:18px;
+  height:18px;
+  margin:-9px 0 0 -9px;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  color:#fff;
+  font-size:11px;
+  font-weight:900;
+  pointer-events:none;
+  z-index:80;
+  background:rgba(95,96,101,.10);
+  border:1px solid rgba(95,96,101,.22);
+  animation:checkBurst .42s cubic-bezier(.2,1.5,.3,1) forwards;
+}
+@keyframes checkBurst{
+  0%{opacity:0;transform:scale(.45)}
+  35%{opacity:1;transform:scale(1.12)}
+  100%{opacity:0;transform:scale(1.55)}
+}
+
+.tick-halo{
+  position:fixed;
+  width:22px;
+  height:22px;
+  margin:-11px 0 0 -11px;
+  border-radius:50%;
+  border:1px solid rgba(95,96,101,.34);
+  box-shadow:0 0 12px rgba(95,96,101,.10);
+  pointer-events:none;
+  z-index:78;
+  animation:haloOut .40s ease-out forwards;
+}
+@keyframes haloOut{
+  0%{opacity:.72;transform:scale(.55)}
+  100%{opacity:0;transform:scale(2.1)}
+}
+
+.tick-spark{
+  position:fixed;
+  width:3px;
+  height:3px;
+  margin:-1.5px 0 0 -1.5px;
+  border-radius:50%;
+  background:#6e6f74;
+  box-shadow:0 0 7px rgba(95,96,101,.28);
+  pointer-events:none;
+  z-index:82;
+  animation:sparkFly .44s ease-out forwards;
+}
+@keyframes sparkFly{
+  0%{opacity:.95;transform:translate(0,0) scale(.8)}
+  100%{opacity:0;transform:translate(var(--x),var(--y)) scale(.15)}
+}
+
+.ring.pulse{
+  animation:ringPulse .34s ease-out;
+}
+@keyframes ringPulse{
+  0%{box-shadow:0 0 0 0 rgba(255,255,255,.10)}
+  55%{box-shadow:0 0 0 7px rgba(255,255,255,.035)}
+  100%{box-shadow:0 0 0 0 rgba(255,255,255,0)}
+}
+
+.row.row-complete{
+  animation:rowComplete .45s ease-out;
+}
+@keyframes rowComplete{
+  0%{background:rgba(255,255,255,0)}
+  35%{background:rgba(255,255,255,.04)}
+  100%{background:rgba(255,255,255,0)}
+}
+
+/* v12 — round macOS controls */
+.nav button,
+.sound{
+  border-radius:50%!important;
+  width:32px!important;
+  min-width:32px!important;
+  height:32px!important;
+  padding:0!important;
+  display:grid!important;
+  place-items:center!important;
+}
+#today.sound{
+  width:auto!important;
+  min-width:0!important;
+  height:30px!important;
+  padding:0 12px!important;
+  border-radius:999px!important;
+  display:inline-flex!important;
+}
+.nav input{
+  border-radius:999px!important;
+}
+.day label{
+  width:34px!important;
+  height:34px!important;
+  border-radius:50%!important;
+}
+.day label.shine::after{
+  border-radius:50%;
+}
+
+
+/* v15 — macOS light */
+.app{
+  background:rgba(248,248,250,.96);
+}
+.titlebar{
+  background:linear-gradient(180deg,rgba(248,248,250,.98),rgba(235,235,238,.98));
+}
+.sidebar{
+  background:linear-gradient(180deg,#f3f3f5,#ededf0);
+}
+.rows{
+  box-shadow:0 1px 0 rgba(255,255,255,.9),0 6px 22px rgba(0,0,0,.045);
+}
+.row{
+  background:#fff;
+}
+.row+.row{
+  border-top-color:#e3e3e7;
+}
+.day label{
+  background:linear-gradient(180deg,#ffffff,#f3f3f5);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.95),0 1px 2px rgba(0,0,0,.04);
+}
+.day label:hover{
+  background:#ffffff;
+  border-color:#bdbdc2;
+}
+.day input:checked+label{
+  background:linear-gradient(180deg,#6c6d72,#55565b);
+  color:#fff;
+  border-color:#55565b;
+  box-shadow:0 2px 6px rgba(0,0,0,.14),inset 0 1px 0 rgba(255,255,255,.15);
+}
+.ring:after{
+  background:#f7f7f9;
+}
+.sound,
+.nav button,
+.nav input{
+  background:linear-gradient(180deg,#ffffff,#f0f0f3);
+  color:#3a3a3c;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.95);
+}
+.sound:hover,
+.nav button:hover{
+  background:#fff;
+}
+
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="titlebar">
+    <div class="traffic"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span></div>
+    <div class="title">Weekly Track Semester I</div>
+    <div class="nav">
+      <button id="sound" class="sound" title="Bật / tắt âm thanh offline">♪</button>
+      <button id="prev">‹</button>
+      <input id="week" type="week">
+      <button id="next">›</button>
+    </div>
+  </div>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="side-label">Semester I</div>
+      <div class="side-item">Tuần này</div>
+    </aside>
+
+    <main class="main">
+      <section class="hero">
+        <div class="ring" id="ring"><div class="ringtext"><div><b id="percent">0%</b><span>hoàn thành</span></div></div></div>
+        <div>
+          <h1>Weekly Track Semester I</h1>
+          <div class="stats">
+            <div class="stat"><b id="done">0</b><span>đã xong</span></div>
+            <div class="stat"><b>20</b><span>tổng mục tiêu</span></div>
+            <div class="stat"><b id="saved">0</b><span>tuần đã lưu</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="rows">
+        <div class="row">
+          <div class="meta"><b>Đại học</b><span>6 buổi sáng · T2–T7</span></div>
+          <div class="days">
+            <div class="day"><input id="u2" data-g="u" type="checkbox"><label for="u2">T2</label></div>
+            <div class="day"><input id="u3" data-g="u" type="checkbox"><label for="u3">T3</label></div>
+            <div class="day"><input id="u4" data-g="u" type="checkbox"><label for="u4">T4</label></div>
+            <div class="day"><input id="u5" data-g="u" type="checkbox"><label for="u5">T5</label></div>
+            <div class="day"><input id="u6" data-g="u" type="checkbox"><label for="u6">T6</label></div>
+            <div class="day"><input id="u7" data-g="u" type="checkbox"><label for="u7">T7</label></div>
+          </div>
+          <div class="score" id="su">0 / 6</div>
+        </div>
+
+        <div class="row">
+          <div class="meta"><b>HSK</b><span>6 buổi · T2–T6 + CN</span></div>
+          <div class="days">
+            <div class="day"><input id="h2" data-g="h" type="checkbox"><label for="h2">T2</label></div>
+            <div class="day"><input id="h3" data-g="h" type="checkbox"><label for="h3">T3</label></div>
+            <div class="day"><input id="h4" data-g="h" type="checkbox"><label for="h4">T4</label></div>
+            <div class="day"><input id="h5" data-g="h" type="checkbox"><label for="h5">T5</label></div>
+            <div class="day"><input id="h6" data-g="h" type="checkbox"><label for="h6">T6</label></div>
+            <div class="day"><input id="hcn" data-g="h" type="checkbox"><label for="hcn">CN</label></div>
+          </div>
+          <div class="score" id="sh">0 / 6</div>
+        </div>
+
+        <div class="row">
+          <div class="meta"><b>Kỹ năng</b><span>Excel · Word → English</span></div>
+          <div class="days">
+            <div class="day"><input id="s2" data-g="s" type="checkbox"><label for="s2">T2</label></div>
+            <div class="day"><input id="s3" data-g="s" type="checkbox"><label for="s3">T3</label></div>
+            <div class="day"><input id="s7" data-g="s" type="checkbox"><label for="s7">T7</label></div>
+          </div>
+          <div class="score" id="ss">0 / 3</div>
+        </div>
+
+        <div class="row">
+          <div class="meta"><b>Thể dục</b><span>4 buổi chính + CN nhẹ</span></div>
+          <div class="days">
+            <div class="day"><input id="e2" data-g="e" type="checkbox"><label for="e2">T2</label></div>
+            <div class="day"><input id="e3" data-g="e" type="checkbox"><label for="e3">T3</label></div>
+            <div class="day"><input id="e4" data-g="e" type="checkbox"><label for="e4">T4</label></div>
+            <div class="day"><input id="e5" data-g="e" type="checkbox"><label for="e5">T5</label></div>
+            <div class="day"><input id="ecn" data-g="e" type="checkbox"><label for="ecn">CN</label></div>
+          </div>
+          <div class="score" id="se">0 / 5</div>
+        </div>
+      </section>
+
+      <div class="footer">
+        <span id="status">Tự động lưu trên máy</span>
+        <button id="today" class="sound">Tuần hiện tại</button>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script>
+(()=>{
+  const KEY="weekly-track-lite-v10";
+  const week=document.getElementById("week");
+  const boxes=[...document.querySelectorAll('input[type="checkbox"]')];
+  const targets={u:6,h:6,s:3,e:5};
+  let soundOn=true,ctx=null;
+
+  function isoWeek(d=new Date()){
+    const x=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));
+    const day=x.getUTCDay()||7;
+    x.setUTCDate(x.getUTCDate()+4-day);
+    const y0=new Date(Date.UTC(x.getUTCFullYear(),0,1));
+    const w=Math.ceil((((x-y0)/86400000)+1)/7);
+    return x.getUTCFullYear()+"-W"+String(w).padStart(2,"0");
+  }
+  function shift(w,delta){
+    const [y,n]=w.split("-W").map(Number);
+    const jan4=new Date(Date.UTC(y,0,4));
+    const day=jan4.getUTCDay()||7;
+    jan4.setUTCDate(jan4.getUTCDate()-(day-1)+(n-1+delta)*7);
+    return isoWeek(new Date(jan4.getUTCFullYear(),jan4.getUTCMonth(),jan4.getUTCDate()));
+  }
+  function all(){try{return JSON.parse(localStorage.getItem(KEY))||{}}catch{return{}}}
+  function saveAll(v){localStorage.setItem(KEY,JSON.stringify(v))}
+  function state(){const s={};boxes.forEach(b=>s[b.id]=b.checked);return s}
+
+  function clickSound(success=false){
+    if(!soundOn)return;
+    const C=window.AudioContext||window.webkitAudioContext;
+    if(!C)return;
+    if(!ctx)ctx=new C();
+    if(ctx.state==="suspended")ctx.resume();
+
+    const now=ctx.currentTime;
+
+    function tone(freq, start, gainValue, duration, type="sine"){
+      const o=ctx.createOscillator();
+      const g=ctx.createGain();
+      o.type=type;
+      o.frequency.setValueAtTime(freq,start);
+      g.gain.setValueAtTime(.0001,start);
+      g.gain.exponentialRampToValueAtTime(gainValue,start+.004);
+      g.gain.exponentialRampToValueAtTime(.0001,start+duration);
+      o.connect(g).connect(ctx.destination);
+      o.start(start);
+      o.stop(start+duration+.01);
+    }
+
+    // Short, clean crystal-like UI click — fully offline.
+    tone(520, now, .012, .045, "sine");
+    tone(1040, now+.006, .008, .052, "triangle");
+    tone(1560, now+.010, .004, .038, "sine");
+
+    if(success){
+      // Slightly richer completion shimmer at 100%.
+      tone(880,  now+.055, .010, .13, "sine");
+      tone(1320, now+.095, .008, .14, "sine");
+      tone(1760, now+.135, .006, .15, "sine");
+    }
+  }
+  function flash(el){
+    const r=el.getBoundingClientRect();
+    const cx=r.left+r.width/2;
+    const cy=r.top+r.height/2;
+
+    el.classList.remove("shine","tick-pop");
+    void el.offsetWidth;
+    el.classList.add("shine","tick-pop");
+    setTimeout(()=>el.classList.remove("shine","tick-pop"),420);
+
+    const halo=document.createElement("i");
+    halo.className="tick-halo";
+    halo.style.left=cx+"px";
+    halo.style.top=cy+"px";
+    document.body.appendChild(halo);
+    setTimeout(()=>halo.remove(),430);
+
+    const check=document.createElement("i");
+    check.className="tick-check";
+    check.textContent="✓";
+    check.style.left=cx+"px";
+    check.style.top=cy+"px";
+    document.body.appendChild(check);
+    setTimeout(()=>check.remove(),460);
+
+    for(let i=0;i<6;i++){
+      const s=document.createElement("i");
+      s.className="tick-spark";
+      const a=(Math.PI*2*i/6)+(Math.random()*.22-.11);
+      const d=14+Math.random()*10;
+      s.style.left=cx+"px";
+      s.style.top=cy+"px";
+      s.style.setProperty("--x",(Math.cos(a)*d)+"px");
+      s.style.setProperty("--y",(Math.sin(a)*d)+"px");
+      document.body.appendChild(s);
+      setTimeout(()=>s.remove(),470);
+    }
+  }
+  function render(){
+    let total=0;
+    for(const g of Object.keys(targets)){
+      const c=boxes.filter(b=>b.dataset.g===g&&b.checked).length;
+      total+=c;
+      const s=document.getElementById("s"+g);
+      const wasDone=s.classList.contains("done");
+      s.textContent=c+" / "+targets[g];
+      s.classList.toggle("done",c===targets[g]);
+
+      if(c===targets[g]&&!wasDone){
+        const row=s.closest(".row");
+        row.classList.remove("row-complete");
+        void row.offsetWidth;
+        row.classList.add("row-complete");
+        setTimeout(()=>row.classList.remove("row-complete"),450);
+      }
+    }
+
+    const p=Math.round(total/20*100);
+    const ring=document.getElementById("ring");
+    ring.style.setProperty("--p",p);
+    ring.classList.remove("pulse");
+    void ring.offsetWidth;
+    ring.classList.add("pulse");
+    setTimeout(()=>ring.classList.remove("pulse"),360);
+
+    document.getElementById("percent").textContent=p+"%";
+    document.getElementById("done").textContent=total;
+    document.getElementById("saved").textContent=Object.keys(all()).length;
+    return p;
+  }
+  function save(){
+    const data=all(),before=render();
+    data[week.value]=state();saveAll(data);
+    document.getElementById("status").textContent="Đã lưu";
+    const p=render();
+    if(p===100&&before!==100)clickSound(true);
+    setTimeout(()=>document.getElementById("status").textContent="Tự động lưu trên máy",700);
+  }
+  function load(){
+    const s=all()[week.value]||{};
+    boxes.forEach(b=>b.checked=!!s[b.id]);
+    render();
+  }
+
+  boxes.forEach(b=>b.addEventListener("change",e=>{
+    flash(e.target.nextElementSibling);clickSound(false);save();
+  }));
+  document.getElementById("prev").onclick=()=>{week.value=shift(week.value,-1);clickSound();load()};
+  document.getElementById("next").onclick=()=>{week.value=shift(week.value,1);clickSound();load()};
+  document.getElementById("today").onclick=()=>{week.value=isoWeek();clickSound();load()};
+  document.getElementById("sound").onclick=e=>{
+    soundOn=!soundOn;e.currentTarget.textContent=soundOn?"♪":"×";
+    if(soundOn)clickSound();
+  };
+  week.addEventListener("change",load);
+
+  week.value=isoWeek();load();
+})();
+</script>
+</body>
+</html>
